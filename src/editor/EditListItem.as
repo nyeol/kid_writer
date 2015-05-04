@@ -23,16 +23,19 @@
 package editor
 {
 	import flash.display.Bitmap;
+	import flash.display.BitmapData;
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.text.TextField;
+	
+	import model.PageData;
 	
 	
 	/**
 	 * 
 	 * @author 최진열(choi.jinyeol@nhn.com)
 	 */
-	public class EditorPage extends Sprite
+	public class EditListItem extends Sprite
 	{
 		
 		//---------------------------------------------------------------------
@@ -53,10 +56,13 @@ package editor
 		
 		private var _index:int = -1;
 		
+		private var _canvasContainer:Sprite = new Sprite;
+		private var _canvas:CanvasView;
+		
 		/**
 		 * Constructor
 		 */
-		public function EditorPage()
+		public function EditListItem()
 		{
 			if(stage)
 				init();
@@ -70,8 +76,10 @@ package editor
 			removeEventListener(Event.ADDED_TO_STAGE, init);
 			
 			addChild(_bg);
+			addChild(_canvasContainer);
 			addChild(pageTf);
 			
+//			_canvasContainer
 			pageTf.x = pageTf.y = 30;
 		}
 		
@@ -91,10 +99,15 @@ package editor
 		//  
 		//---------------------------------------------------------------------
 		
-		public function update(index:int):void
+		public function update(index:int, pageData:PageData):void
 		{
 			pageTf.text = '' + index;
 			_index = index;
+			
+			_canvasContainer.removeChildren();
+			
+			_canvas = new CanvasView(pageData.image, new BitmapData(1,1,false,pageData.bgColor));
+			_canvasContainer.addChild(_canvas);
 		}
 
 	}

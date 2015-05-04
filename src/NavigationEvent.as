@@ -36,12 +36,23 @@ package
 		public static const EDIT:String = 'edit';
 		public static const BACK:String = 'back';
 
+		public var targetIndex:int;
+		public var editType:String;
+		
 		/**
 		 * Constructor
 		 */
-		public function NavigationEvent(type:String, bubbles:Boolean=false, cancelable:Boolean=false)
+		public function NavigationEvent(type:String, targetBookId:int=-1, extra:Object=null, bubbles:Boolean=false, cancelable:Boolean=false)
 		{
 			super(type, bubbles, cancelable);
+			
+			this.targetIndex = targetBookId;
+			
+			if(type == EDIT && extra)
+			{
+				this.editType = String(extra);
+			}
+			
 		}
 		
 	}

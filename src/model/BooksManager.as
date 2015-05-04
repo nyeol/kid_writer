@@ -35,37 +35,50 @@ package model
 		//  Class ( Constants, Variables, Properties, Methods)
 		//  
 		//---------------------------------------------------------------------
-		
+		private static var _instance:BooksManager;
+		public static function get instance():BooksManager
+		{
+			if (!Boolean(_instance)) 
+				_instance = new BooksManager;
+			return _instance;
+		}
 		//---------------------------------------------------------------------
 		//  
 		//  Variables ( Constants, public, internal, private )
 		//  
 		//---------------------------------------------------------------------
 		
+		private var _books:Vector.<BookData>;
+		
 		/**
 		 * Constructor
 		 */
 		public function BooksManager()
 		{
+			_books = new Vector.<BookData>;
 		}
 		
-		//---------------------------------------------------------------------
-		//  
-		//  Properties ( first Override )
-		//  
-		//---------------------------------------------------------------------
+		public function get bookCount():int
+		{
+			return _books.length;
+		}
 		
-		//---------------------------------------------------------------------
-		//  
-		//  Methods ( first Override )
-		//  
-		//---------------------------------------------------------------------
+		public function getBookByIndex(index:int):BookData
+		{
+			return _books[index];
+		}
+
+		public function addBook(book:BookData):void
+		{
+			_books.push(book);
+		}
+
 		
-		//---------------------------------------------------------------------
-		//  
-		//  Handlers ( first Override )
-		//  
-		//---------------------------------------------------------------------
+		public function makeNewBook():BookData
+		{
+			var book:BookData = new BookData;
+			return book;
+		}
 		
 	}
 }

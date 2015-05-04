@@ -11,58 +11,56 @@
 //  전적으로 사용자에게 있으며, NHN(주)는 이에 대해 명시적 혹은 묵시적으로 어떠한
 //  보증도하지 않습니다. NHN(주)는 이 문서의 내용을 예고 없이 변경할 수 있습니다.
 //
-//  File name : BookData.as
+//  File name : CanvasView.as
 //  Author: 최진열(choi.jinyeol@nhn.com)
-//  First created: Apr 28, 2015, 최진열(choi.jinyeol@nhn.com)
-//  Last revised: Apr 28, 2015, 최진열(choi.jinyeol@nhn.com)
+//  First created: May 4, 2015, 최진열(choi.jinyeol@nhn.com)
+//  Last revised: May 4, 2015, 최진열(choi.jinyeol@nhn.com)
 //  Version: v.1.0
 //
 ////////////////////////////////////////////////////////////////////////////////
 
 
-package model
+package editor
 {
+	import flash.display.Bitmap;
+	import flash.display.BitmapData;
+	import flash.display.Sprite;
+	
 	
 	/**
 	 * 
 	 * @author 최진열(choi.jinyeol@nhn.com)
 	 */
-	public class BookData
+	public class CanvasView extends Sprite
 	{
-		public var id:int;
-		public var pages:Vector.<PageData>;
+		public static const W:Number = 919;
+		public static const H:Number = 581;
+		
+		public var bg:Bitmap;
+		public var canvas:Bitmap;
 		
 		/**
 		 * Constructor
 		 */
-		public function BookData(id:int=0, pages:Vector.<PageData>=null)
+		public function CanvasView(canvasData:BitmapData, bgData:BitmapData)
 		{
-			if(pages)
-			{
-				this.pages = pages;				
-			} 
-			else 
-			{
-				pages = new Vector.<PageData>(2);
-				var count:int = pages.length;
-				for (var i:int = 0; i < count; i++) 
-				{
-					pages[i] = new PageData(i);
-				}
-				
-			}
+			bg = new Bitmap(bgData);
+			canvas = new Bitmap(canvasData);
+			
+			bg.width = canvas.width;
+			bg.height = canvas.height;
+			
+			addChild(bg);
+			addChild(canvas);
 		}
 		
-		public function get count():int
+		public function get canvasData():BitmapData
 		{
-			return pages.length;
+			return canvas.bitmapData;
 		}
-		
-		public function addPage(at:int):PageData
+		public function set canvasData(data:BitmapData):void
 		{
-			var page:PageData = new PageData();
-			pages.splice(at, 0, page);
-			return page;
+			canvas.bitmapData = data;
 		}
 		
 		

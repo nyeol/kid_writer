@@ -25,9 +25,8 @@ package
 	import flash.display.Sprite;
 	import flash.display.StageAlign;
 	import flash.display.StageScaleMode;
-	import flash.events.Event;
 	
-	import editor.Editor;
+	import editor.EditorMain;
 	
 	import home.Home;
 	
@@ -56,7 +55,7 @@ package
 		private var _curScene:Sprite;
 		
 		private var _home:Home;
-		private var _editor:Editor;
+		private var _editor:EditorMain;
 		
 		
 		/**
@@ -126,11 +125,11 @@ package
 			}
 			return _home;
 		}
-		private function createEditor():Editor
+		private function createEditor():EditorMain
 		{
 			if(!_editor)
 			{
-				_editor = new Editor;
+				_editor = new EditorMain;
 				_editor.addEventListener(NavigationEvent.BACK, onBack);
 			}
 			return _editor;

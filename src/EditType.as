@@ -11,60 +11,27 @@
 //  전적으로 사용자에게 있으며, NHN(주)는 이에 대해 명시적 혹은 묵시적으로 어떠한
 //  보증도하지 않습니다. NHN(주)는 이 문서의 내용을 예고 없이 변경할 수 있습니다.
 //
-//  File name : BookData.as
+//  File name : EditType.as
 //  Author: 최진열(choi.jinyeol@nhn.com)
-//  First created: Apr 28, 2015, 최진열(choi.jinyeol@nhn.com)
-//  Last revised: Apr 28, 2015, 최진열(choi.jinyeol@nhn.com)
+//  First created: May 4, 2015, 최진열(choi.jinyeol@nhn.com)
+//  Last revised: May 4, 2015, 최진열(choi.jinyeol@nhn.com)
 //  Version: v.1.0
 //
 ////////////////////////////////////////////////////////////////////////////////
 
 
-package model
+package
 {
 	
 	/**
 	 * 
 	 * @author 최진열(choi.jinyeol@nhn.com)
 	 */
-	public class BookData
+	public class EditType
 	{
-		public var id:int;
-		public var pages:Vector.<PageData>;
-		
-		/**
-		 * Constructor
-		 */
-		public function BookData(id:int=0, pages:Vector.<PageData>=null)
-		{
-			if(pages)
-			{
-				this.pages = pages;				
-			} 
-			else 
-			{
-				pages = new Vector.<PageData>(2);
-				var count:int = pages.length;
-				for (var i:int = 0; i < count; i++) 
-				{
-					pages[i] = new PageData(i);
-				}
-				
-			}
-		}
-		
-		public function get count():int
-		{
-			return pages.length;
-		}
-		
-		public function addPage(at:int):PageData
-		{
-			var page:PageData = new PageData();
-			pages.splice(at, 0, page);
-			return page;
-		}
-		
+		public static const DRAW:String = 'draw';
+		public static const RECORD:String = 'record';
+
 		
 	}
 }

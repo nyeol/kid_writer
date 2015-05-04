@@ -29,6 +29,8 @@ package editor
 	
 	import mx.events.ModuleEvent;
 	
+	import model.BookData;
+	
 	import org.libspark.betweenas3.BetweenAS3;
 	
 	
@@ -36,7 +38,7 @@ package editor
 	 * 
 	 * @author 최진열(choi.jinyeol@nhn.com)
 	 */
-	public class EditorPageList extends Sprite
+	public class EditList extends Sprite
 	{
 		
 		//---------------------------------------------------------------------
@@ -45,7 +47,8 @@ package editor
 		//  
 		//---------------------------------------------------------------------
 		private static const pageGap:int = 40;
-		private static const startX:int = 130;
+		public static const startX:int = 130;
+		public static const startY:int = 50;
 		
 		//---------------------------------------------------------------------
 		//  
@@ -54,22 +57,24 @@ package editor
 		//---------------------------------------------------------------------
 		
 		private var _pageContainer:Sprite = new Sprite;
-		private var _pages:Vector.<EditorPage> = new Vector.<EditorPage>(3);
+		private var _pages:Vector.<EditListItem> = new Vector.<EditListItem>(3);
 		
 		private var _curIndex:int;
 		private var _totalCount:int = 2;
 		
 		private var _btnAdd:Sprite = new Sprite;
 		private var _btnDelete:Sprite = new Sprite;
+		
 		private var _btnPlay:Sprite = new Sprite;
 		private var _btnRecord:Sprite = new Sprite;
 		private var _btnDraw:Sprite = new Sprite;
 
+		private var _bookData:BookData;
 		
 		/**
 		 * Constructor
 		 */
-		public function EditorPageList()
+		public function EditList()
 		{
 			if(stage)
 				init();
@@ -85,12 +90,12 @@ package editor
 			var count:int = _pages.length;
 			for (var i:int = 0; i < count; i++) 
 			{
-				var page:EditorPage = createPage();
+				var page:EditListItem = createPage();
 				_pages[i] = page
 				_pageContainer.addChild(page);
 			}
 			_pageContainer.x = stage.stageWidth;
-			_pageContainer.y = 50;
+			_pageContainer.y = startY;
 			addChild(_pageContainer);
 			
 			
@@ -116,6 +121,47 @@ package editor
 			});
 			
 			setButtonVisible();
+			
+			
+			var bottmY:int = _pageContainer.y + _pageContainer.height;
+			
+			_btnPlay.addChild(new Assets.btn_play as Bitmap);
+			_btnPlay.x = stage.stageWidth/2 - _btnPlay.width/2;
+			_btnPlay.y = bottmY;
+			addChild(_btnPlay);
+			
+			_btnPlay.addEventListener(MouseEvent.CLICK, function(e:Event):void{
+				
+			});
+			
+			_btnRecord.addChild(new Assets.bt_microphone as Bitmap);
+			_btnRecord.x = _btnPlay.x - 200;
+			_btnRecord.y = bottmY;
+			
+			_btnRecord.height = _btnPlay.height;
+			_btnRecord.scaleX = _btnRecord.scaleY;
+			
+			addChild(_btnRecord);
+			
+			_btnRecord.addEventListener(MouseEvent.CLICK, function(e:Event):void{
+				dispatchEvent(new NavigationEvent(NavigationEvent.EDIT, curIndex, EditType.RECORD));
+			});
+			
+			_btnDraw.addChild(new Assets.bt_pencil as Bitmap);
+			_btnDraw.x = _btnPlay.x + 200;
+			_btnDraw.y = bottmY;
+			
+			_btnDraw.height = _btnPlay.height;
+			_btnDraw.scaleX = _btnDraw.scaleY;
+			
+			addChild(_btnDraw);
+			
+			_btnDraw.addEventListener(MouseEvent.CLICK, function(e:Event):void{
+				dispatchEvent(new NavigationEvent(NavigationEvent.EDIT, curIndex, EditType.DRAW));
+			});
+			
+			
+			
 			move();
 		}
 		
@@ -135,9 +181,10 @@ package editor
 		//  
 		//---------------------------------------------------------------------
 		
-		public function setup(totalPage:int):void
+		public function setup(book:BookData):void
 		{
-			_totalCount = totalPage;
+			_bookData = book;
+			_totalCount = book.count;
 		}
 		
 		public function enable():void
@@ -232,13 +279,13 @@ package editor
 			setButtonVisible();
 			display();
 			
-			var target:Number = startX -((pageGap + EditorPage.WIDTH) * _curIndex);
+			var target:Number = startX -((pageGap + EditListItem.WIDTH) * _curIndex);
 			BetweenAS3.tween(_pageContainer, {x:target}, null, .2).play();
 		}
 		
-		private function createPage(isCover:Boolean=false):EditorPage
+		private function createPage(isCover:Boolean=false):EditListItem
 		{
-			var page:EditorPage = new EditorPage;
+			var page:EditListItem = new EditListItem;
 			
 			return page;
 		}
@@ -248,7 +295,7 @@ package editor
 			var count:int = _pages.length;
 			for (var i:int = 0; i < count; i++) 
 			{
-				var page:EditorPage = _pages[i];
+				var page:EditListItem = _pages[i];
 				var index:int = _curIndex + (i-1);
 				
 				if(index < 0)
@@ -268,8 +315,8 @@ package editor
 					
 					if( index != page.index)
 					{
-						page.update(index);
-						page.x = (index) * (pageGap + EditorPage.WIDTH);
+						page.update(index, _bookData.pages[index]);
+						page.x = (index) * (pageGap + EditListItem.WIDTH);
 					}
 				}
 				
@@ -303,7 +350,6 @@ package editor
 
 		private function hideButtons():void
 		{
-//			_btnDelete.visible = false;
 			_btnAdd.visible = false;
 		}
 		

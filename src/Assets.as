@@ -83,6 +83,8 @@ package
 		[Embed(source = "../asset/ui/btn_sound.png")]
 		public static const btn_sound:Class;
 
+		[Embed(source = "../asset/eraser_mask.png")]
+		public static const eraser_mask:Class;
 
 
 	}

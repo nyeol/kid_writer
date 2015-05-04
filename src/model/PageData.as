@@ -22,6 +22,8 @@
 
 package model
 {
+	import flash.display.BitmapData;
+	import flash.utils.ByteArray;
 	
 	/**
 	 * 
@@ -29,43 +31,35 @@ package model
 	 */
 	public class PageData
 	{
+		public var id:int;
+		public var bgColor:uint;
+		private var _image:BitmapData;
+		private var _sound:ByteArray;
 		
-		//---------------------------------------------------------------------
-		//  
-		//  Class ( Constants, Variables, Properties, Methods)
-		//  
-		//---------------------------------------------------------------------
-		
-		//---------------------------------------------------------------------
-		//  
-		//  Variables ( Constants, public, internal, private )
-		//  
-		//---------------------------------------------------------------------
-		
-		/**
-		 * Constructor
-		 */
-		public function PageData()
+		public function PageData(id:int=0)
 		{
+			this.id = id;
 		}
 		
-		//---------------------------------------------------------------------
-		//  
-		//  Properties ( first Override )
-		//  
-		//---------------------------------------------------------------------
-		
-		//---------------------------------------------------------------------
-		//  
-		//  Methods ( first Override )
-		//  
-		//---------------------------------------------------------------------
-		
-		//---------------------------------------------------------------------
-		//  
-		//  Handlers ( first Override )
-		//  
-		//---------------------------------------------------------------------
-		
+		public function get sound():ByteArray
+		{
+			return _sound;
+		}
+
+		public function set sound(value:ByteArray):void
+		{
+			_sound = value;
+		}
+
+		public function get image():BitmapData
+		{
+			return _image;
+		}
+
+		public function set image(value:BitmapData):void
+		{
+			_image = value;
+		}
+
 	}
 }
