@@ -30,6 +30,9 @@ package
 	
 	import home.Home;
 	
+	import model.BookData;
+	import model.BooksManager;
+	
 	
 	/**
 	 * 
@@ -138,6 +141,9 @@ package
 		
 		private function startCreateBook():void
 		{
+			var book:BookData = BooksManager.instance.makeNewBook();
+			BooksManager.instance.addBook(book);
+			
 			chageScene(Scene.EDIT_LIST);
 		}
 		
