@@ -1,40 +1,22 @@
-////////////////////////////////////////////////////////////////////////////////
-//
-//  NHN Corp
-//  Copyright NHN Corp.
-//  All Rights Reserved.
-//
-//  이 문서는 NHN(주)의 지적 자산이므로 NHN(주)의 승인 없이 이 문서를	다른 용도로
-//  임의 변경하여 사용할 수 없습니다. NHN(주)는 이 문서에 수록된 정보의 완전성과
-//  정확성을 검증하기 위해 노력하였으나, 발생할 수 있는 내용상의 오류나 누락에
-//  대해서는 책임지지 않습니다. 따라서 이 문서의 사용이나 사용결과에 따른 책임은
-//  전적으로 사용자에게 있으며, NHN(주)는 이에 대해 명시적 혹은 묵시적으로 어떠한
-//  보증도하지 않습니다. NHN(주)는 이 문서의 내용을 예고 없이 변경할 수 있습니다.
-//
-//  File name : Drawer.as
-//  Author: 최진열(choi.jinyeol@nhn.com)
-//  First created: Apr 28, 2015, 최진열(choi.jinyeol@nhn.com)
-//  Last revised: Apr 28, 2015, 최진열(choi.jinyeol@nhn.com)
-//  Version: v.1.0
-//
-////////////////////////////////////////////////////////////////////////////////
 
 
 package editor
 {
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
+	import flash.display.BlendMode;
+	import flash.display.CapsStyle;
+	import flash.display.Graphics;
+	import flash.display.GraphicsPathCommand;
+	import flash.display.JointStyle;
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
+	import flash.geom.ColorTransform;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	
 	
-	/**
-	 * 
-	 * @author 최진열(choi.jinyeol@nhn.com)
-	 */
 	public class Drawer extends Sprite
 	{
 		
@@ -75,19 +57,6 @@ package editor
 		{
 			_eraserMask = new BitmapData(ERASER_MASK.width, ERASER_MASK.height, true, 0x0);
 			_eraserMask.draw(ERASER_MASK);
-
-			
-			if(stage)
-				onAddToStage();
-			else
-				this.addEventListener(Event.ADDED_TO_STAGE, onAddToStage);
-			
-		}
-		
-		private function onAddToStage(e:Event = null):void
-		{
-			this.removeEventListener(Event.ADDED_TO_STAGE, init);
-			open();
 		}
 		
 		public function init(canvas:CanvasView):void
@@ -128,7 +97,7 @@ package editor
 				{
 					_tools = new Sprite;
 					_tools.addChild(new Assets.bg_tool_big as Bitmap);
-					_tools.x = stage.stageWidth - _tools.width;
+					_tools.x = KidWriter.SCREEN_WIDTH - _tools.width;
 					_tools.y = 10;
 					addChild(_tools);
 
@@ -166,34 +135,44 @@ package editor
 					_btnEraser.y = 200;
 					_btnEraser.alpha = .3;
 					_tools.addChild(_btnEraser);
+					
+				} 
+				else 
+				{
+					addChild(_tools);
 				}
-				
-				_tools.visible = true;
 				setupPenMode(true);
 				
+				if(_btnOpen && _btnOpen.parent)
+					removeChild(_btnOpen);
+				
 			} else {
-				if(_tools)
-					_tools.visible = false;
 				
 				if(!_btnOpen)
 				{
 					_btnOpen = new Sprite;
 					_btnOpen.addChild(new Assets.bg_tool_small as Bitmap);
+					_btnOpen.x = KidWriter.SCREEN_WIDTH - _btnOpen.width;
+					_btnOpen.y = 10;
+					addChild(_btnOpen);
+					
 					var pen:Bitmap = new Assets.bt_pencil as Bitmap;
 					pen.x = 10;
 					pen.y = 10;
 					_btnOpen.addChild(pen);
 					
-					_btnOpen.x = stage.stageWidth - 200;
-					_btnOpen.y = 0;
-					addChild(_btnOpen);
-					
 					_btnOpen.addEventListener(MouseEvent.CLICK, function(e:Event):void
 					{
-						open();
+						dispatchEvent(new Event(Event.OPEN));
 					});
+				} 
+				else 
+				{
+					addChild(_btnOpen);
 				}
-				_btnOpen.visible = true;
+
+				if(_tools && _tools.parent)
+					removeChild(_tools);
 				
 			}
 		}
@@ -234,7 +213,7 @@ package editor
 			return true;
 		}
 		
-		private var _pastPoint:Point = new Point;
+		private var curPath:LinePath;
 		
 		private function onMouseDown(e:MouseEvent):void
 		{
@@ -243,29 +222,22 @@ package editor
 				_canvas.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
 				stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUp);
 				
-				_pastPoint.x = e.localX;
-				_pastPoint.y = e.localY;
+				curPath = new LinePath(e.localX, e.localY);
 				
-				if (_isPen) _resetDrawSp(_pastPoint);
 				_cacheData();
 			}
+			
 		}
 		
 		private function onMouseMove(e:MouseEvent):void
 		{
-			var x:Number;
-			var y:Number;
-			
-			x = e.localX;
-			y = e.localY;
+			var x:Number = e.localX;
+			var y:Number = e.localY;
 			
 			if (_isPen) {
-				_drawTarget.graphics.lineTo(x, y);
-				_canvas.canvasData.draw(_drawTarget);
 				
-				_pastPoint.x = x;
-				_pastPoint.y = y;
-				_resetDrawSp(_pastPoint);
+				_draw(_drawTarget.graphics, x, y);
+				_canvas.canvasData.draw(_drawTarget);
 				
 			} else {
 				var sx:Number = x - _eraserMask.width / 2;
@@ -283,6 +255,12 @@ package editor
 		
 		private function onMouseUp(e:MouseEvent):void
 		{
+			if (_isPen) 
+			{
+				_drawEnd(_drawTarget.graphics, e.localX, e.localY, .8);
+				_canvas.canvasData.draw(_drawTarget);
+			}			
+			
 			_canvas.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
 			stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUp);
 		}
@@ -294,12 +272,49 @@ package editor
 			_canvas.canvasData = new BitmapData(CanvasView.W, CanvasView.H, true, 0x0);
 		}
 		
-		private function _resetDrawSp(point:Point):void
+		private var lineColor:uint = 0x444444;
+		private var lineAlpha:Number = .4;
+		
+		private function _draw(dg:Graphics, x:Number, y:Number, smoothFacter:Number = .4):void
 		{
-			_drawTarget.graphics.clear();
-			_drawTarget.graphics.lineStyle(4, 0x0);
-			_drawTarget.graphics.moveTo(point.x, point.y);
+			var cx:Number = curPath.x + (x - curPath.x) * smoothFacter;
+			var cy:Number = curPath.y + (y - curPath.y) * smoothFacter;
+			
+			var path:LinePath = new LinePath(cx, cy, curPath);
+			
+			dg.clear();
+			dg.beginFill(lineColor, lineAlpha);
+			
+			dg.moveTo(path.path[0].x, path.path[0].y);
+			dg.lineTo(path.path[1].x, path.path[1].y);
+			dg.lineTo(path.path[2].x, path.path[2].y);
+			dg.lineTo(path.path[3].x, path.path[3].y);
+			
+			dg.endFill();
+			curPath = path;
 		}
+		
+		private function _drawEnd(dg:Graphics, x:Number, y:Number, smoothFacter:Number = .4):void
+		{
+			var cx:Number = curPath.x + (x - curPath.x) * smoothFacter;
+			var cy:Number = curPath.y + (y - curPath.y) * smoothFacter;
+			
+			var path:LinePath = new LinePath(cx, cy, curPath);
+			
+			dg.clear();
+			dg.beginFill(lineColor, lineAlpha);
+			
+			dg.moveTo(path.path[0].x, path.path[0].y);
+			dg.cubicCurveTo(
+				path.path[1].x, path.path[1].y, 
+				path.path[2].x, path.path[2].y,
+				path.path[3].x, path.path[3].y
+			);
+			
+			dg.endFill();
+			curPath = path;
+		}
+
 		
 		private function _cacheData():void
 		{
@@ -313,4 +328,50 @@ package editor
 		}
 
 	}
+}
+
+
+import flash.geom.Point;
+
+class LinePath extends Point
+{
+	public var angle:Number;
+	public var thickness:Number;
+	
+	public var path:Vector.<Point> = new Vector.<Point>(4);
+	
+	public function LinePath(x:Number, y:Number, pastLinePoint:LinePath=null)
+	{
+		super(x, y);
+		
+		if(pastLinePoint)
+		{
+			thickness = 1 + Point.distance(pastLinePoint, this) * .6;
+			angle = Math.atan2( y - pastLinePoint.y, x - pastLinePoint.x);
+			
+			var th:Number = thickness / 2;
+			var leftPoint:Point = Point.polar(th, angle + Math.PI/2);
+			leftPoint.x += x;
+			leftPoint.y += y;
+			
+			var rightPoint:Point = Point.polar(th, angle - Math.PI/2);
+			rightPoint.x += x;
+			rightPoint.y += y;
+			
+			path[0] = pastLinePoint.path[1].clone();
+			path[3] = pastLinePoint.path[2].clone();
+			
+			path[1] = leftPoint;
+			path[2] = rightPoint;
+		}
+		else
+		{
+			path[0] = this.clone();
+			path[3] = this.clone();
+			path[1] = this.clone();
+			path[2] = this.clone();
+		}
+		
+	}
+	
 }

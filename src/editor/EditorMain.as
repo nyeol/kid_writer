@@ -1,43 +1,22 @@
-////////////////////////////////////////////////////////////////////////////////
-//
-//  NHN Corp
-//  Copyright NHN Corp.
-//  All Rights Reserved.
-//
-//  이 문서는 NHN(주)의 지적 자산이므로 NHN(주)의 승인 없이 이 문서를	다른 용도로
-//  임의 변경하여 사용할 수 없습니다. NHN(주)는 이 문서에 수록된 정보의 완전성과
-//  정확성을 검증하기 위해 노력하였으나, 발생할 수 있는 내용상의 오류나 누락에
-//  대해서는 책임지지 않습니다. 따라서 이 문서의 사용이나 사용결과에 따른 책임은
-//  전적으로 사용자에게 있으며, NHN(주)는 이에 대해 명시적 혹은 묵시적으로 어떠한
-//  보증도하지 않습니다. NHN(주)는 이 문서의 내용을 예고 없이 변경할 수 있습니다.
-//
-//  File name : Editor.as
-//  Author: 최진열(choi.jinyeol@nhn.com)
-//  First created: Apr 28, 2015, 최진열(choi.jinyeol@nhn.com)
-//  Last revised: Apr 28, 2015, 최진열(choi.jinyeol@nhn.com)
-//  Version: v.1.0
-//
-////////////////////////////////////////////////////////////////////////////////
 
 
 package editor
 {
+	import flash.desktop.NativeApplication;
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
-	import flash.geom.ColorTransform;
-	import flash.geom.Rectangle;
+	import flash.system.System;
+	
+	import common.BookView;
+	
+	import model.BooksManager;
 	
 	import org.libspark.betweenas3.BetweenAS3;
 	
-	
-	/**
-	 * 
-	 * @author 최진열(choi.jinyeol@nhn.com)
-	 */
-	public class EditorMain extends Sprite
+	public class EditorMain extends BookView
 	{
 		
 		//---------------------------------------------------------------------
@@ -66,30 +45,48 @@ package editor
 		 */
 		public function EditorMain()
 		{
-			if(stage)
+//			if(stage)
 				init();
-			else
-				addEventListener(Event.ADDED_TO_STAGE, init);
+			
+			addEventListener(Event.ADDED_TO_STAGE, onAddedToStage);
+			addEventListener(Event.REMOVED_FROM_STAGE, onRemovedToStage);
+		}
+
+		private function onAddedToStage(e:Event):void
+		{
+			init();
 		}
 		
-		private function init(e:Event=null):void
+		private function onRemovedToStage(e:Event):void
 		{
-			removeEventListener(Event.ADDED_TO_STAGE, init);
 			
-			addChild(_bg);
-			_bg.width = stage.stageWidth;
-			_bg.height = stage.stageHeight;
-			
+		}
+		
+		private function init():void
+		{
+			if(this.numChildren == 0)
+			{
+				addChild(_bg);
+				_bg.width = KidWriter.SCREEN_WIDTH;
+				_bg.height = KidWriter.SCREEN_HEIGHT;
+				
+				setupButton();
+			}
+
+		}
+		
+		public function showEdit():void
+		{
+			changeMode(MODE_EDIT);
+		}
+		
+		public function showList():void
+		{
 			BetweenAS3.tween(_bg, {alpha:1}, {alpha:0}, .4).play();
-			
-			setupButton();
-			
 			changeMode(MODE_LIST);
 		}
 		
-		
-		
-		private function changeMode(to:int):void
+		private function changeMode(to:int, index:int=0, editType:String=null):void
 		{
 			if(_mode != to)
 			{
@@ -104,10 +101,10 @@ package editor
 							_list = new EditList;
 							_list.addEventListener(NavigationEvent.EDIT, onEdit);
 						}
+						_list.setup(bookData, bookIndex, pageIndex);
 						addChild(_list);
-						_list.enable();
 
-						if(_editor)
+						if(_editor && _editor.parent == this)
 						{
 							removeChild(_editor);
 						}
@@ -118,9 +115,8 @@ package editor
 					case MODE_EDIT:
 					{
 						btnBack.visible = false;
-						if(_list)
+						if(_list && _list.parent == this)
 						{
-							_list.disable();
 							removeChild(_list);
 						}
 						
@@ -128,9 +124,8 @@ package editor
 						{
 							_editor = new PageEditor;
 							_editor.addEventListener(NavigationEvent.BACK, onCompleteEdit);
-						} else {
-							_editor.show();
 						}
+						_editor.setup(bookData.pages[index], editType);
 						addChild(_editor);
 						
 						break;
@@ -161,18 +156,19 @@ package editor
 			addChild(btnBack);
 //			
 			btnBack.addEventListener(MouseEvent.CLICK, onClose);
-			
 		}
 		
 
 		private function onEdit(e:NavigationEvent):void
 		{
-//			e.editType
-			changeMode(MODE_EDIT);
+			changeMode(MODE_EDIT, e.pageIndex, e.editType);
 		}
 		
 		private function onCompleteEdit(e:NavigationEvent):void
 		{
+			BooksManager.instance.saveBook(bookData);
+			BooksManager.instance.saveBookList();
+			
 			changeMode(MODE_LIST);
 		}
 		
@@ -180,6 +176,7 @@ package editor
 		{
 			dispatchEvent(new NavigationEvent(NavigationEvent.BACK));
 		}
+		
 		
 	}
 }

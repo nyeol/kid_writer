@@ -1,34 +1,15 @@
-////////////////////////////////////////////////////////////////////////////////
-//
-//  NHN Corp
-//  Copyright NHN Corp.
-//  All Rights Reserved.
-//
-//  이 문서는 NHN(주)의 지적 자산이므로 NHN(주)의 승인 없이 이 문서를	다른 용도로
-//  임의 변경하여 사용할 수 없습니다. NHN(주)는 이 문서에 수록된 정보의 완전성과
-//  정확성을 검증하기 위해 노력하였으나, 발생할 수 있는 내용상의 오류나 누락에
-//  대해서는 책임지지 않습니다. 따라서 이 문서의 사용이나 사용결과에 따른 책임은
-//  전적으로 사용자에게 있으며, NHN(주)는 이에 대해 명시적 혹은 묵시적으로 어떠한
-//  보증도하지 않습니다. NHN(주)는 이 문서의 내용을 예고 없이 변경할 수 있습니다.
-//
-//  File name : BookList.as
-//  Author: 최진열(choi.jinyeol@nhn.com)
-//  First created: Apr 28, 2015, 최진열(choi.jinyeol@nhn.com)
-//  Last revised: Apr 28, 2015, 최진열(choi.jinyeol@nhn.com)
-//  Version: v.1.0
-//
-////////////////////////////////////////////////////////////////////////////////
-
 
 package home
 {
+	import flash.display.Bitmap;
 	import flash.display.Sprite;
+	import flash.events.MouseEvent;
+	import flash.geom.Point;
+	
+	import model.BookData;
+	import model.BooksManager;
 	
 	
-	/**
-	 * 
-	 * @author 최진열(choi.jinyeol@nhn.com)
-	 */
 	public class BookList extends Sprite
 	{
 		
@@ -44,12 +25,14 @@ package home
 		//  
 		//---------------------------------------------------------------------
 		
+		private var bookCovers:Vector.<Cover>;
+		
 		/**
 		 * Constructor
 		 */
 		public function BookList()
 		{
-			super();
+			addBook();
 		}
 		
 		//---------------------------------------------------------------------
@@ -64,11 +47,51 @@ package home
 		//  
 		//---------------------------------------------------------------------
 		
-		//---------------------------------------------------------------------
-		//  
-		//  Handlers ( first Override )
-		//  
-		//---------------------------------------------------------------------
+		public function addBook():void
+		{
+			bookCovers = new Vector.<Cover>;
+			
+			var count:int = BooksManager.instance.bookCount;
+			for (var i:int = 0; i < count; i++) 
+			{
+				var cover:Cover = new Cover(BooksManager.instance.getBookByIndex(i));
+				cover.index = i;
+				cover.x = cover.width * i + 30;
+				cover.y = 30;
+				addChild(cover);
+				cover.addEventListener(MouseEvent.CLICK, onClick);
+				
+				bookCovers.push(cover);
+			}
+			
+		}
 		
+		private function onClick(e:MouseEvent):void
+		{
+//			var book:BookData = Cover(e.target).book;
+			dispatchEvent(new NavigationEvent(NavigationEvent.SHOW, Cover(e.target).index));
+		}
+	}
+}
+import flash.display.Bitmap;
+import flash.display.Sprite;
+
+import model.BookData;
+
+class Cover extends Sprite
+{
+	public var index:uint;
+	public var book:BookData;
+	
+	public function Cover(book:BookData)
+	{
+		var bg:Bitmap = new Assets.bg_main_book() as Bitmap;
+		addChild(bg);
+		
+		this.book = book;
+		var img:Bitmap = new Bitmap(book.pages[0].image);
+		img.width = bg.width;
+		img.height = bg.height;
+		addChild(img);
 	}
 }
